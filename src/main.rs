@@ -1,24 +1,30 @@
-use druid::widget::{Button, Flex, Label};
-use druid::{AppLauncher, LocalizedString, PlatformError, Widget, WidgetExt, WindowDesc};
+use druid::{AppLauncher, PlatformError, Widget, WidgetExt, WindowDesc};
+
+pub mod editor;
+
+use editor::*;
+
+const PADDING : f64 = 5.0;
 
 fn main() -> Result<(), PlatformError> {
-    let main_window = WindowDesc::new(ui_builder);
-    let data = 0_u32;
-    AppLauncher::with_window(main_window)
-        .use_simple_logger()
-        .launch(data)
+  // TODO - Find a more idiomatic way to calculate the size
+  let char_width = 9.0;
+  let width = 80.0 * char_width + 1.0 + 2.0 * PADDING;
+  let height = 800.0;
+
+  let main_window = WindowDesc::new(ui_builder)
+    .window_size((width, height));
+
+  let default_str = "0123456789".repeat(8);
+
+  AppLauncher::with_window(main_window)
+    .use_simple_logger()
+    .launch(EditorState {text: default_str, caret_pos: 0})
 }
 
-fn ui_builder() -> impl Widget<u32> {
-    // The label text will be computed dynamically based on the current locale and count
-    let text =
-        LocalizedString::new("hello-counter").with_arg("count", |data: &u32, _env| (*data).into());
-    let label = Label::new(text).padding(5.0).center();
-    let button = Button::new("increment")
-        .on_click(|_ctx, data, _env| *data += 1)
-        .padding(5.0);
+fn ui_builder() -> impl Widget<EditorState> {
+  let default_str = "0123456789".repeat(8);
 
-    Flex::column()
-      .with_child(label)
-      .with_child(button)
+  EditorWidget::new(default_str)
+    .padding(PADDING)
 }
