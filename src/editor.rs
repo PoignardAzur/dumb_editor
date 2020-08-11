@@ -12,17 +12,17 @@ use druid::{
 #[derive(Clone, Data, Lens)]
 pub struct EditorState {
   pub text: String,
-  pub caret_pos: usize,
+  pub cursor_pos: usize,
 }
 
 // TODO - Calculate that stuff better
 const CHAR_SIZE : (f64, f64) = (9.0, 16.0);
-const CARET_SIZE : Size = Size::new(3.0, 16.0);
+const CURSOR_SIZE : Size = Size::new(3.0, 16.0);
 
 pub struct EditorWidget {
   contents: WidgetPod<String, Label<String>>,
-  caret_px_pos: Point,
-  caret_is_on: bool,
+  cursor_px_pos: Point,
+  cursor_is_on: bool,
 }
 
 impl EditorWidget {
@@ -32,16 +32,16 @@ impl EditorWidget {
       .with_font("monospace".to_string());
     Self {
       contents: WidgetPod::new(contents_label),
-      caret_px_pos: Point::ZERO,
-      caret_is_on: true,
+      cursor_px_pos: Point::ZERO,
+      cursor_is_on: true,
     }
   }
 
   // FIXME - Bad!!! We're mutating internal data instead of returning values
-  pub fn update_caret_pos(&mut self, state: &EditorState) {
-    let x = CHAR_SIZE.0 * state.caret_pos as f64;
+  pub fn update_cursor_pos(&mut self, state: &EditorState) {
+    let x = CHAR_SIZE.0 * state.cursor_pos as f64;
     let y = 0.0;
-    self.caret_px_pos = Point::new(x, y);
+    self.cursor_px_pos = Point::new(x, y);
   }
 }
 
@@ -56,13 +56,13 @@ impl Widget<EditorState> for EditorWidget {
         dbg!(event.key_code);
         match event.key_code {
           KeyCode::ArrowLeft => {
-            data.caret_pos -= 1;
-            self.update_caret_pos(data);
+            data.cursor_pos -= 1;
+            self.update_cursor_pos(data);
             ctx.request_paint();
           },
           KeyCode::ArrowRight => {
-            data.caret_pos += 1;
-            self.update_caret_pos(data);
+            data.cursor_pos += 1;
+            self.update_cursor_pos(data);
             ctx.request_paint();
           },
           _ => (),
@@ -93,9 +93,9 @@ impl Widget<EditorState> for EditorWidget {
   fn paint(&mut self, ctx: &mut PaintCtx, data: &EditorState, env: &Env) {
     self.contents.paint(ctx, &data.text, env);
 
-    if self.caret_is_on {
+    if self.cursor_is_on {
       ctx.fill(
-        Rect::from_origin_size(self.caret_px_pos, CARET_SIZE),
+        Rect::from_origin_size(self.cursor_px_pos, CURSOR_SIZE),
         &Color::rgb8(20, 60, 230),
       );
     }
