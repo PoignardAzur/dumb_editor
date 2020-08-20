@@ -16,7 +16,7 @@ use crate::rope::{Rope, RopeMarkers, RopeSpans, RopeData, RopeOps};
 use crate::rope::match_spans;
 use crate::cursors::{update_cursors, CursorOp};
 
-#[derive(Clone, Data, Lens)]
+#[derive(Clone, Debug, Data, Lens)]
 pub struct EditorState {
   pub text: Rope,
   pub cursors: RopeMarkers,

@@ -1,25 +1,27 @@
 use im::Vector;
 use druid::{Data, Lens};
 
-#[derive(Clone, Data, Lens)]
+#[derive(Debug, Clone, Data, Lens)]
 pub struct Rope {
   pub text: String,
 }
 
-#[derive(Clone, Data, Lens)]
+#[derive(Debug, Clone, Data, Lens)]
 pub struct RopeMarkers {
   pub markers: Vector<usize>,
 }
 
-#[derive(Clone, Data, Lens)]
+#[derive(Debug, Clone, Data, Lens)]
 pub struct RopeSpans {
   pub spans: Vector<usize>,
 }
 
+#[derive(Debug, Clone)]
 pub struct RopeData<T> {
   pub data: Vec<T>,
 }
 
+#[derive(Debug, Clone)]
 pub struct RopeOps {
   pub ops: Vec<(usize, usize, String)>,
 }

@@ -2,6 +2,7 @@ use im::Vector;
 use druid::{Data, Lens};
 use crate::rope::{Rope, RopeMarkers, RopeSpans, RopeData, RopeOps};
 
+#[derive(Debug, Clone)]
 pub enum CursorOp {
   MoveLeft,
   MoveRight,
