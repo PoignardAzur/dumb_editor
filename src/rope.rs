@@ -96,7 +96,7 @@ impl RopeSpans {
 
 pub struct DumbSpanMatch {
   pub index: usize,
-  pub match_gap: usize,
+  pub offset: usize,
 }
 
 pub fn match_spans(markers: &RopeMarkers, spans: &RopeSpans) -> RopeData<DumbSpanMatch> {
@@ -106,7 +106,7 @@ pub fn match_spans(markers: &RopeMarkers, spans: &RopeSpans) -> RopeData<DumbSpa
       let mut acc_length = 0;
       for span in &spans.spans {
         if *marker >= acc_length && *marker < acc_length + *span {
-          return DumbSpanMatch { index: i, match_gap: *marker - acc_length };
+          return DumbSpanMatch { index: i, offset: *marker - acc_length };
         }
         i += 1;
         acc_length += *span;

@@ -14,6 +14,7 @@ use druid::{
 
 use crate::rope::{Rope, RopeMarkers, RopeSpans, RopeData, RopeOps};
 use crate::rope::match_spans;
+use crate::cursors::{update_cursors, CursorOp};
 
 #[derive(Clone, Data, Lens)]
 pub struct EditorState {
@@ -29,17 +30,27 @@ pub struct EditorWidget {
   rows: RopeData<WidgetPod<(), Label<()>>>,
   line_spans: RopeSpans,
   cursors_px_pos: RopeData<Point>,
+  cursors_line_index: RopeData<usize>,
+  cursors_line_offset: RopeData<usize>,
   cursor_is_on: bool,
 }
 
 impl EditorWidget {
-  pub fn new() -> Self {
-    Self {
+  pub fn new(state: &EditorState) -> Self {
+    let mut widget = Self {
       rows: RopeData { data: Vec::new() },
       line_spans: RopeSpans { spans: Vector::new() },
-      cursors_px_pos: RopeData { data: vec![Point::ZERO] },
+      cursors_px_pos: RopeData { data: Vec::new() },
+      cursors_line_index: RopeData { data: Vec::new() },
+      cursors_line_offset: RopeData { data: Vec::new() },
       cursor_is_on: true,
-    }
+    };
+
+    widget.update_contents(state);
+    widget.update_line_spans(state);
+    widget.update_cursor_pos(state);
+
+    widget
   }
 
   // FIXME - Bad!!! We're mutating internal data instead of returning values
@@ -48,13 +59,18 @@ impl EditorWidget {
     let cursors_pos = cursors_spans.data.iter()
       .map(|dumb_span_match| {
         let cursor_y = dumb_span_match.index;
-        let cursor_x = dumb_span_match.match_gap;
+        let cursor_x = dumb_span_match.offset;
 
         Point::new(cursor_x as f64 * CHAR_SIZE.0, cursor_y as f64 * CHAR_SIZE.1)
       })
       .collect();
+    let (cursors_index, cursors_offset) = cursors_spans.data.iter()
+      .map(|span| (span.index, span.offset))
+      .unzip();
 
     self.cursors_px_pos = RopeData { data: cursors_pos };
+    self.cursors_line_index = RopeData { data: cursors_index };
+    self.cursors_line_offset = RopeData { data: cursors_offset };
   }
 
   fn update_line_spans(&mut self, state: &EditorState) {
@@ -86,11 +102,69 @@ impl Widget<EditorState> for EditorWidget {
       Event::KeyDown(event) => {
         match event.key_code {
           KeyCode::ArrowLeft => {
-            data.cursors.markers[0] -= 1;
+            update_cursors(
+              &mut data.cursors,
+              &self.cursors_line_index,
+              &self.cursors_line_offset,
+              &self.line_spans,
+              data.text.text.len(),
+              CursorOp::MoveLeft,
+            );
             ctx.request_paint();
           },
           KeyCode::ArrowRight => {
-            data.cursors.markers[0] += 1;
+            update_cursors(
+              &mut data.cursors,
+              &self.cursors_line_index,
+              &self.cursors_line_offset,
+              &self.line_spans,
+              data.text.text.len(),
+              CursorOp::MoveRight,
+            );
+            ctx.request_paint();
+          },
+          KeyCode::ArrowUp => {
+            update_cursors(
+              &mut data.cursors,
+              &self.cursors_line_index,
+              &self.cursors_line_offset,
+              &self.line_spans,
+              data.text.text.len(),
+              CursorOp::MoveUp,
+            );
+            ctx.request_paint();
+          },
+          KeyCode::ArrowDown => {
+            update_cursors(
+              &mut data.cursors,
+              &self.cursors_line_index,
+              &self.cursors_line_offset,
+              &self.line_spans,
+              data.text.text.len(),
+              CursorOp::MoveDown,
+            );
+            ctx.request_paint();
+          },
+          KeyCode::Home => {
+            update_cursors(
+              &mut data.cursors,
+              &self.cursors_line_index,
+              &self.cursors_line_offset,
+              &self.line_spans,
+              data.text.text.len(),
+              CursorOp::MoveBeginLine,
+            );
+            ctx.request_paint();
+          },
+          KeyCode::End => {
+            update_cursors(
+              &mut data.cursors,
+              &self.cursors_line_index,
+              &self.cursors_line_offset,
+              &self.line_spans,
+              data.text.text.len(),
+              CursorOp::MoveEndLine,
+            );
             ctx.request_paint();
           },
           _ => (),
