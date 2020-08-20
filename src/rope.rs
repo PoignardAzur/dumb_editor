@@ -26,10 +26,12 @@ pub struct RopeOps {
 
 
 impl Rope {
-  pub fn splice(&self, str: String, pos: usize) -> RopeOps {
-    RopeOps { ops: vec![
-      (pos, pos, str),
-    ] }
+  pub fn splice(&self, str: String, cursors: &RopeMarkers) -> RopeOps {
+    RopeOps {
+      ops: cursors.markers.iter()
+        .map(|cursor| (*cursor, *cursor, str.clone()))
+        .collect()
+    }
   }
 
   pub fn with(&mut self, ops: &RopeOps) -> Self {
@@ -50,19 +52,20 @@ impl Rope {
 impl RopeMarkers {
   pub fn with(&mut self, ops: &RopeOps) -> Self {
     let mut new_markers = self.clone();
-    let mut gap = 0;
+    let new_markers_iter = new_markers.markers.iter_mut();
+    let old_markers_iter = self.markers.iter();
 
-    // FIXME - This assumes that ops are sorted
-    for op in &ops.ops {
-      for marker in new_markers.markers.iter_mut() {
-        if *marker >= op.0 {
-          let removed_space = std::cmp::min(op.1, *marker) - op.0;
-          *marker += gap + op.2.len() - removed_space;
+    for (old_marker, new_marker) in old_markers_iter.zip(new_markers_iter) {
+      let mut gap = 0;
+      // FIXME - This assumes that ops are sorted
+      for op in &ops.ops {
+        if *old_marker >= op.0 {
+          let removed_space = std::cmp::min(op.1, *old_marker) - op.0;
+          *new_marker += op.2.len() - removed_space;
         }
+        gap -= op.1 - op.0;
+        gap += op.2.len();
       }
-
-      gap -= op.1 - op.0;
-      gap += op.2.len();
     }
 
     new_markers

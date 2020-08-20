@@ -177,7 +177,7 @@ impl Widget<EditorState> for EditorWidget {
             inserted_txt = "\n";
           }
 
-          let ops = data.text.splice(inserted_txt.to_string(), data.cursors.markers[0] as usize);
+          let ops = data.text.splice(inserted_txt.to_string(), &data.cursors);
 
           data.text = data.text.with(&ops);
           data.cursors = data.cursors.with(&ops);

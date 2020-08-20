@@ -34,9 +34,6 @@ pub fn update_cursors(
     let line_index = *cursors_line_index_iter.next().unwrap();
     let line_offset = *cursors_line_offset_iter.next().unwrap();
 
-    dbg!(&line_spans.spans);
-    dbg!(line_index);
-    dbg!(line_offset);
     let line_span = *line_spans.spans.get(line_index).unwrap();
 
     let prev_line_span = if line_index > 0 { line_spans.spans.get(line_index - 1) } else { None };
@@ -89,5 +86,8 @@ pub fn update_cursors(
     }
   }
 
-  // TODO - merge cursors
+  // FIXME: This is the dumbest, brute-forcest way to do this
+  let mut deduped_markers = cursors.markers.iter().copied().collect::<Vec<_>>();
+  deduped_markers.dedup();
+  cursors.markers = deduped_markers.iter().copied().collect::<Vector<_>>();
 }
