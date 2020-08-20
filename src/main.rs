@@ -1,8 +1,11 @@
 use druid::{AppLauncher, PlatformError, Widget, WidgetExt, WindowDesc};
+use im::vector;
 
 pub mod editor;
+pub mod rope;
 
 use editor::*;
+use rope::{Rope, RopeMarkers};
 
 const PADDING : f64 = 5.0;
 
@@ -15,16 +18,14 @@ fn main() -> Result<(), PlatformError> {
   let main_window = WindowDesc::new(ui_builder)
     .window_size((width, height));
 
-  let default_str = "0123456789".repeat(8);
+  let default_str = Rope { text: "0123456789\n".repeat(8) };
 
   AppLauncher::with_window(main_window)
     .use_simple_logger()
-    .launch(EditorState {text: default_str, caret_pos: 0})
+    .launch(EditorState { text: default_str, cursors: RopeMarkers { markers: vector![0] } })
 }
 
 fn ui_builder() -> impl Widget<EditorState> {
-  let default_str = "0123456789".repeat(8);
-
-  EditorWidget::new(default_str)
+  EditorWidget::new()
     .padding(PADDING)
 }
